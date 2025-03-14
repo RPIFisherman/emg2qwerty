@@ -281,6 +281,29 @@ class TDSConvEncoder(nn.Module):
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         return self.tds_conv_blocks(inputs)  # (T, N, num_features)
 
+class TDSLSTMEncoder(nn.Module):
+    
+    def __init__(
+        self,
+        num_features: int,
+        hidden_size: int,
+        num_layers: int
+    ) -> None:
+        super().__init__()
+
+        self.lstm = nn.LSTM(
+            input_size=num_features,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            batch_first=False  # Input format is (seq_len, batch, features)
+        )
+        self.fn = nn.Linear(hidden_size, num_features)
+
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        output, _ = self.lstm(inputs)
+        output = self.fn(output)
+        return output
+    
 class TDSGRUEncoder(nn.Module):
     """
     A GRU-based encoder that processes input sequences of shape (T, N, n_features).

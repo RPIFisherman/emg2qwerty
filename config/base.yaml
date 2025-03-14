@@ -2,7 +2,8 @@ defaults:
   - user: single_user
   - transforms: log_spectrogram
   # - model: tds_conv_ctc
-  # - model: cnn_gru
+  # - model: cnn_gru_ctc
+  # - model: cnn_lstm_ctc
   - model: transformer_encoder_ctc
   - optimizer: adam
   - lr_scheduler: linear_warmup_cosine_annealing
