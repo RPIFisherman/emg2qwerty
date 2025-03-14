@@ -359,7 +359,6 @@ class TransformerEncoderCTC(nn.Module):
         self.fc = nn.Linear(d_model, charset().num_classes)
     
     def forward(self, x):
-        print(f"Input shape: {x.shape}")  # Add this line to print the input shape
         x = self.input_proj(x)
         x = self.pos_encoder(x)
         x = self.transformer_encoder(x)
