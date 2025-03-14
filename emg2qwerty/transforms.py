@@ -55,6 +55,13 @@ class Lambda:
     def __call__(self, data: Any) -> Any:
         return self.lambd(data)
 
+@dataclass
+class TransformerDim:
+    """Applies a reshape for transformer_encoder_ctc
+    """
+
+    def __call__(self, data: Any) -> Any:
+        return data.flatten(start_dim=1)
 
 @dataclass
 class ForEach:

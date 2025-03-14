@@ -858,13 +858,13 @@ class TransformerCTCModule(pl.LightningModule):
             "test_metrics": metrics.clone(prefix="test/"),
         })
 
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        # If the input has more than 3 dimensions, flatten extra dims.
-        # Expected raw input (T, N, ...features...) -> (T, N, feature_dim)
-        if inputs.dim() > 3:
-            T, N = inputs.shape[:2]
-            inputs = inputs.view(T, N, -1)
-        return self.model(inputs)
+    def forward(self, inputs):
+        # Compute logits using the transformer model.
+        logits = self.model(inputs)
+        log_probs = torch.nn.functional.log_softmax(logits, dim=-1)
+        # Transpose to (T, N, C) for CTCLoss.
+        log_probs = log_probs.transpose(0, 1)
+        return log_probs
     
     def _step(
         self, phase: str, batch: dict[str, torch.Tensor], *args, **kwargs

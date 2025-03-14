@@ -5,15 +5,6 @@ module:
   d_model: 512
   nhead: 8
   num_layers: 6
-  # optimizer:
-  #   _target_: torch.optim.AdamW
-  #   lr: 0.001
-  #   weight_decay: 0.01
-  # lr_scheduler:
-  #   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-  #   T_max: 40
-  # decoder:
-  #   _target_: emg2qwerty.decoders.GreedyDecoder
 
 datamodule:
   _target_: emg2qwerty.lightning.WindowedEMGDataModule

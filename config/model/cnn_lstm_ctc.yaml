@@ -1,3 +1,4 @@
+# @package _global_
 module:
   _target_: emg2qwerty.lightning.TDSCNNLSTMCTCModule
   in_features: 528  # freq * channels = (n_fft // 2 + 1) * 16

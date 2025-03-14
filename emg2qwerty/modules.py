@@ -366,15 +366,29 @@ class TransformerEncoderCTC(nn.Module):
         return x
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, d_model, max_len=5000):
+    def __init__(self, d_model, max_len=5000, device="cuda"):
         super().__init__()
-        self.pe = torch.zeros(max_len, d_model).to("cuda")  # Add to("cuda")
-        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1).to("cuda")  # Add to("cuda")
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-np.log(10000.0) / d_model)).to("cuda")  # Add to("cuda")
-        self.pe[:, 0::2] = torch.sin(position * div_term)
-        self.pe[:, 1::2] = torch.cos(position * div_term)
-        self.pe = self.pe.unsqueeze(0).transpose(0, 1)
+        self.device = device
+        
+        # Create positional encodings on CPU first
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-np.log(10000.0) / d_model))
+        
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        
+        # Store the positional encoding properly shaped for addition
+        # Shape: (max_len, 1, d_model)
+        self.register_buffer('pe', pe.unsqueeze(1))
 
     def forward(self, x):
+        """
+        Args:
+            x: Tensor, shape [seq_len, batch_size, embedding_dim]
+        """
+        # Add positional encoding to input
+        # pe shape is [seq_len, 1, d_model], which will broadcast correctly
+        # with x shape [seq_len, batch_size, embedding_dim]
         x = x + self.pe[:x.size(0), :]
         return x
