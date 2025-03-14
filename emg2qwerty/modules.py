@@ -6,9 +6,11 @@
 
 from collections.abc import Sequence
 
+import numpy as np
 import torch
 from torch import nn
 
+from emg2qwerty.charset import charset
 
 class SpectrogramNorm(nn.Module):
     """A `torch.nn.Module` that applies 2D batch normalization over spectrogram
@@ -278,3 +280,35 @@ class TDSConvEncoder(nn.Module):
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         return self.tds_conv_blocks(inputs)  # (T, N, num_features)
+
+class TransformerEncoderCTC(nn.Module):
+    def __init__(self, input_dim, d_model, nhead, num_layers):
+        super().__init__()
+        self.input_proj = nn.Linear(input_dim, d_model)
+        self.pos_encoder = PositionalEncoding(d_model)
+        self.transformer_encoder = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(d_model, nhead), num_layers
+        )
+        self.fc = nn.Linear(d_model, charset().num_classes)
+    
+    def forward(self, x):
+        print(f"Input shape: {x.shape}")  # Add this line to print the input shape
+        x = self.input_proj(x)
+        x = self.pos_encoder(x)
+        x = self.transformer_encoder(x)
+        x = self.fc(x)
+        return x
+
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model, max_len=5000):
+        super().__init__()
+        self.pe = torch.zeros(max_len, d_model).to("cuda")  # Add to("cuda")
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1).to("cuda")  # Add to("cuda")
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-np.log(10000.0) / d_model)).to("cuda")  # Add to("cuda")
+        self.pe[:, 0::2] = torch.sin(position * div_term)
+        self.pe[:, 1::2] = torch.cos(position * div_term)
+        self.pe = self.pe.unsqueeze(0).transpose(0, 1)
+
+    def forward(self, x):
+        x = x + self.pe[:x.size(0), :]
+        return x

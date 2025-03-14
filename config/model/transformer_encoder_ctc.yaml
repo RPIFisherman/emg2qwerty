@@ -1,0 +1,48 @@
+# @package _global_
+module:
+  _target_: emg2qwerty.lightning.TransformerCTCModule
+  input_dim: 1056    # 2 bands * 16 electrode channels * 33 frequency bins
+  d_model: 512
+  nhead: 8
+  num_layers: 6
+  # optimizer:
+  #   _target_: torch.optim.AdamW
+  #   lr: 0.001
+  #   weight_decay: 0.01
+  # lr_scheduler:
+  #   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  #   T_max: 40
+  # decoder:
+  #   _target_: emg2qwerty.decoders.GreedyDecoder
+
+datamodule:
+  _target_: emg2qwerty.lightning.WindowedEMGDataModule
+  window_length: 8000  # 4 sec windows for 2kHz EMG
+  padding: [1800, 200]  # 900ms past context, 100ms future context
+
+# _target_: emg2qwerty.lightning.TransformerCTCModule
+# input_dim: 64    # same as input_dim in the previous snippet
+# d_model: 512
+# nhead: 8
+# num_layers: 6
+# optimizer:
+#   _target_: torch.optim.AdamW
+#   lr: 0.001
+#   weight_decay: 0.01
+# lr_scheduler:
+#   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+#   T_max: 40
+# decoder:
+#   _target_: emg2qwerty.decoders.GreedyDecoder
+
+# train_transform:
+#   _target_: emg2qwerty.transforms.Compose
+#   transforms:
+#     - _target_: emg2qwerty.transforms.ToTensor
+#       fields: ["emg_left", "emg_right"]
+#       stack_dim: 2
+#     - _target_: emg2qwerty.transforms.LogSpectrogram
+#       n_fft: 64
+#       hop_length: 16
+#     - _target_: emg2qwerty.transforms.Lambda
+#       lambda: "lambda x: x.mean(dim=-1)"
