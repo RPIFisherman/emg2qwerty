@@ -353,15 +353,24 @@ class TransformerEncoderCTC(nn.Module):
         super().__init__()
         self.input_proj = nn.Linear(input_dim, d_model)
         self.pos_encoder = PositionalEncoding(d_model)
-        self.transformer_encoder = nn.TransformerEncoder(
-            nn.TransformerEncoderLayer(d_model, nhead), num_layers
+        
+        # Add dropout to transformer layers
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d_model, 
+            nhead=nhead,
+            dropout=0.3  # Add dropout
         )
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers)
+        
+        # Add dropout before final classification
+        self.dropout = nn.Dropout(0.2)
         self.fc = nn.Linear(d_model, charset().num_classes)
     
     def forward(self, x):
         x = self.input_proj(x)
         x = self.pos_encoder(x)
         x = self.transformer_encoder(x)
+        x = self.dropout(x)  # Apply dropout
         x = self.fc(x)
         return x
 

@@ -98,7 +98,11 @@ class Compose:
 
     def __call__(self, data: Any) -> Any:
         for transform in self.transforms:
-            data = transform(data)
+            try:
+                data = transform(data)
+            except TypeError as e:
+                print(f"Error applying transform {type(transform)}: {e}")
+                raise
         return data
 
 
